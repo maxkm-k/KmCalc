@@ -1,0 +1,1043 @@
+name: Build KmCalc APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "**" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK & Project Structure
+        run: |
+          mkdir -p KmCalc/app/src/main/java/com/kmcalc/app
+          mkdir -p KmCalc/app/src/main/res/layout
+          mkdir -p KmCalc/app/src/main/res/values
+          mkdir -p KmCalc/app/src/main/res/drawable
+
+          cat << 'EOF' > KmCalc/settings.gradle
+          rootProject.name = "KmCalc"
+          include ':app'
+          EOF
+
+          cat << 'EOF' > KmCalc/build.gradle
+          buildscript {
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+              dependencies {
+                  classpath 'com.android.tools.build:gradle:8.2.2'
+                  classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22'
+              }
+          }
+          allprojects {
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          EOF
+
+          cat << 'EOF' > KmCalc/app/build.gradle
+          plugins {
+              id 'com.android.application'
+              id 'org.jetbrains.kotlin.android'
+          }
+
+          android {
+              namespace 'com.kmcalc.app'
+              compileSdk 34
+
+              defaultConfig {
+                  applicationId "com.kmcalc.app"
+                  minSdk 23
+                  targetSdk 34
+                  versionCode 1
+                  versionName "1.0"
+              }
+
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+                  }
+              }
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+              kotlinOptions {
+                  jvmTarget = '17'
+              }
+              buildFeatures {
+                  viewBinding true
+              }
+          }
+
+          dependencies {
+              implementation 'androidx.core:core-ktx:1.12.0'
+              implementation 'androidx.appcompat:appcompat:1.6.1'
+              implementation 'com.google.android.material:material:1.11.0'
+              implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+          }
+          EOF
+
+          cat << 'EOF' > KmCalc/app/src/main/AndroidManifest.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <application
+                  android:allowBackup="true"
+                  android:label="KmCalc"
+                  android:supportsRtl="true"
+                  android:theme="@style/Theme.KmCalc">
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:windowSoftInputMode="adjustResize">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+
+          cat << 'EOF' > KmCalc/app/src/main/res/values/strings.xml
+          <resources>
+              <string name="app_name">KmCalc</string>
+          </resources>
+          EOF
+
+          cat << 'EOF' > KmCalc/app/src/main/res/values/themes.xml
+          <resources>
+              <style name="Theme.KmCalc" parent="Theme.Material3.DayNight.NoActionBar">
+                  <item name="colorPrimary">#0F766E</item>
+                  <item name="colorSecondary">#1E293B</item>
+                  <item name="android:statusBarColor">#0F172A</item>
+              </style>
+          </resources>
+          EOF
+
+          cat << 'EOF' > KmCalc/app/src/main/res/layout/activity_main.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="#0F172A"
+              android:orientation="vertical">
+
+              <TextView
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:background="#1E293B"
+                  android:padding="14dp"
+                  android:text="KmCalc — Calculator, Units, Electrical &amp; Dam"
+                  android:textColor="#F8FAFC"
+                  android:textSize="17sp"
+                  android:textStyle="bold" />
+
+              <com.google.android.material.tabs.TabLayout
+                  android:id="@+id/tabLayout"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:background="#1E293B"
+                  app:tabGravity="fill"
+                  app:tabIndicatorColor="#2DD4BF"
+                  app:tabMode="scrollable"
+                  app:tabSelectedTextColor="#2DD4BF"
+                  app:tabTextColor="#94A3B8">
+
+                  <com.google.android.material.tabs.TabItem android:text="Calc" />
+                  <com.google.android.material.tabs.TabItem android:text="Units" />
+                  <com.google.android.material.tabs.TabItem android:text="Electrical" />
+                  <com.google.android.material.tabs.TabItem android:text="Dam" />
+              </com.google.android.material.tabs.TabLayout>
+
+              <FrameLayout
+                  android:id="@+id/containerFrame"
+                  android:layout_width="match_parent"
+                  android:layout_height="0dp"
+                  android:layout_weight="1">
+
+                  <!-- TAB 0: BASIC CALCULATOR -->
+                  <LinearLayout
+                      android:id="@+id/panelCalc"
+                      android:layout_width="match_parent"
+                      android:layout_height="match_parent"
+                      android:orientation="vertical"
+                      android:padding="12dp">
+
+                      <TextView
+                          android:id="@+id/tvExpr"
+                          android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          android:gravity="end"
+                          android:padding="6dp"
+                          android:text=""
+                          android:textColor="#94A3B8"
+                          android:textSize="20sp" />
+
+                      <TextView
+                          android:id="@+id/tvResult"
+                          android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          android:gravity="end"
+                          android:padding="8dp"
+                          android:text="0"
+                          android:textColor="#F8FAFC"
+                          android:textSize="36sp"
+                          android:textStyle="bold" />
+
+                      <GridLayout
+                          android:id="@+id/gridCalc"
+                          android:layout_width="match_parent"
+                          android:layout_height="0dp"
+                          android:layout_weight="1"
+                          android:columnCount="4"
+                          android:rowCount="5" />
+                  </LinearLayout>
+
+                  <!-- TAB 1: GENERAL UNIT CONVERSIONS -->
+                  <ScrollView
+                      android:id="@+id/panelUnits"
+                      android:layout_width="match_parent"
+                      android:layout_height="match_parent"
+                      android:padding="14dp"
+                      android:visibility="gone">
+
+                      <LinearLayout
+                          android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          android:orientation="vertical">
+
+                          <TextView
+                              android:layout_width="wrap_content"
+                              android:layout_height="wrap_content"
+                              android:text="Category (Weight, Length, Area, Volume)"
+                              android:textColor="#CBD5E1"
+                              android:textStyle="bold" />
+
+                          <Spinner
+                              android:id="@+id/spUnitCat"
+                              android:layout_width="match_parent"
+                              android:layout_height="48dp"
+                              android:layout_marginTop="6dp"
+                              android:background="#1E293B" />
+
+                          <EditText
+                              android:id="@+id/etUnitVal"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="12dp"
+                              android:background="#1E293B"
+                              android:hint="Enter value"
+                              android:inputType="numberDecimal|numberSigned"
+                              android:padding="12dp"
+                              android:textColor="#F8FAFC"
+                              android:textColorHint="#64748B" />
+
+                          <TextView
+                              android:layout_width="wrap_content"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="12dp"
+                              android:text="From Unit"
+                              android:textColor="#CBD5E1" />
+
+                          <Spinner
+                              android:id="@+id/spUnitFrom"
+                              android:layout_width="match_parent"
+                              android:layout_height="48dp"
+                              android:layout_marginTop="4dp"
+                              android:background="#1E293B" />
+
+                          <TextView
+                              android:layout_width="wrap_content"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="12dp"
+                              android:text="To Unit"
+                              android:textColor="#CBD5E1" />
+
+                          <Spinner
+                              android:id="@+id/spUnitTo"
+                              android:layout_width="match_parent"
+                              android:layout_height="48dp"
+                              android:layout_marginTop="4dp"
+                              android:background="#1E293B" />
+
+                          <Button
+                              android:id="@+id/btnConvertUnit"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="16dp"
+                              android:text="Convert" />
+
+                          <TextView
+                              android:id="@+id/tvUnitOutput"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="14dp"
+                              android:background="#1E293B"
+                              android:padding="14dp"
+                              android:text="Result will appear here"
+                              android:textColor="#2DD4BF"
+                              android:textIsSelectable="true"
+                              android:textSize="16sp" />
+                      </LinearLayout>
+                  </ScrollView>
+
+                  <!-- TAB 2: ELECTRICAL CONVERTER & QUANTITIES -->
+                  <ScrollView
+                      android:id="@+id/panelElectrical"
+                      android:layout_width="match_parent"
+                      android:layout_height="match_parent"
+                      android:padding="14dp"
+                      android:visibility="gone">
+
+                      <LinearLayout
+                          android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          android:orientation="vertical">
+
+                          <TextView
+                              android:layout_width="wrap_content"
+                              android:layout_height="wrap_content"
+                              android:text="kW <-> HP Converter &amp; System Quantities"
+                              android:textColor="#2DD4BF"
+                              android:textSize="16sp"
+                              android:textStyle="bold" />
+
+                          <RadioGroup
+                              android:id="@+id/rgHpType"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="8dp"
+                              android:orientation="horizontal">
+
+                              <RadioButton
+                                  android:id="@+id/rbMetricHp"
+                                  android:layout_width="wrap_content"
+                                  android:layout_height="wrap_content"
+                                  android:checked="true"
+                                  android:text="Metric HP (735.5 W)"
+                                  android:textColor="#E2E8F0" />
+
+                              <RadioButton
+                                  android:id="@+id/rbImpHp"
+                                  android:layout_width="wrap_content"
+                                  android:layout_height="wrap_content"
+                                  android:layout_marginStart="12dp"
+                                  android:text="Imp HP (745.7 W)"
+                                  android:textColor="#E2E8F0" />
+                          </RadioGroup>
+
+                          <RadioGroup
+                              android:id="@+id/rgPhase"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="6dp"
+                              android:orientation="horizontal">
+
+                              <RadioButton
+                                  android:id="@+id/rbThreePhase"
+                                  android:layout_width="wrap_content"
+                                  android:layout_height="wrap_content"
+                                  android:checked="true"
+                                  android:text="3-Phase (√3·V·I)"
+                                  android:textColor="#E2E8F0" />
+
+                              <RadioButton
+                                  android:id="@+id/rbSinglePhase"
+                                  android:layout_width="wrap_content"
+                                  android:layout_height="wrap_content"
+                                  android:layout_marginStart="16dp"
+                                  android:text="1-Phase (V·I)"
+                                  android:textColor="#E2E8F0" />
+                          </RadioGroup>
+
+                          <TextView
+                              android:layout_width="wrap_content"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="8dp"
+                              android:text="Primary Solve Mode"
+                              android:textColor="#CBD5E1" />
+
+                          <Spinner
+                              android:id="@+id/spElecMode"
+                              android:layout_width="match_parent"
+                              android:layout_height="46dp"
+                              android:layout_marginTop="4dp"
+                              android:background="#1E293B" />
+
+                          <EditText
+                              android:id="@+id/etElecKnownA"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="10dp"
+                              android:background="#1E293B"
+                              android:hint="Enter kW or HP (depending on mode)"
+                              android:inputType="numberDecimal"
+                              android:padding="12dp"
+                              android:textColor="#F8FAFC"
+                              android:textColorHint="#64748B" />
+
+                          <EditText
+                              android:id="@+id/etElecVoltage"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="8dp"
+                              android:background="#1E293B"
+                              android:hint="Line/Phase Voltage V (default 415)"
+                              android:inputType="numberDecimal"
+                              android:padding="12dp"
+                              android:textColor="#F8FAFC"
+                              android:textColorHint="#64748B" />
+
+                          <EditText
+                              android:id="@+id/etElecCurrent"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="8dp"
+                              android:background="#1E293B"
+                              android:hint="Current I in Amps (optional if solving from kW/HP)"
+                              android:inputType="numberDecimal"
+                              android:padding="12dp"
+                              android:textColor="#F8FAFC"
+                              android:textColorHint="#64748B" />
+
+                          <EditText
+                              android:id="@+id/etElecPf"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="8dp"
+                              android:background="#1E293B"
+                              android:hint="Power Factor cos(φ) (0.1 to 1.0, default 0.85)"
+                              android:inputType="numberDecimal"
+                              android:padding="12dp"
+                              android:textColor="#F8FAFC"
+                              android:textColorHint="#64748B" />
+
+                          <EditText
+                              android:id="@+id/etElecEff"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="8dp"
+                              android:background="#1E293B"
+                              android:hint="Efficiency % (1 to 100, default 95)"
+                              android:inputType="numberDecimal"
+                              android:padding="12dp"
+                              android:textColor="#F8FAFC"
+                              android:textColorHint="#64748B" />
+
+                          <Button
+                              android:id="@+id/btnCalcElec"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="14dp"
+                              android:text="Calculate All Electrical Quantities" />
+
+                          <TextView
+                              android:id="@+id/tvElecOutput"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="12dp"
+                              android:background="#1E293B"
+                              android:padding="14dp"
+                              android:text="Enter values and tap Calculate"
+                              android:textColor="#F8FAFC"
+                              android:textIsSelectable="true"
+                              android:textSize="14sp" />
+                      </LinearLayout>
+                  </ScrollView>
+
+                  <!-- TAB 3: DAM & HYDROLOGY CALCULATIONS -->
+                  <ScrollView
+                      android:id="@+id/panelDam"
+                      android:layout_width="match_parent"
+                      android:layout_height="match_parent"
+                      android:padding="14dp"
+                      android:visibility="gone">
+
+                      <LinearLayout
+                          android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          android:orientation="vertical">
+
+                          <TextView
+                              android:layout_width="wrap_content"
+                              android:layout_height="wrap_content"
+                              android:text="Dam &amp; Hydro Power Calculations"
+                              android:textColor="#2DD4BF"
+                              android:textSize="16sp"
+                              android:textStyle="bold" />
+
+                          <EditText
+                              android:id="@+id/etDamHead"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="10dp"
+                              android:background="#1E293B"
+                              android:hint="Net Head H in meters (e.g., 350)"
+                              android:inputType="numberDecimal"
+                              android:padding="12dp"
+                              android:textColor="#F8FAFC"
+                              android:textColorHint="#64748B" />
+
+                          <EditText
+                              android:id="@+id/etDamFlow"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="8dp"
+                              android:background="#1E293B"
+                              android:hint="Discharge / Flow Q in m³/s / cumecs (e.g., 12)"
+                              android:inputType="numberDecimal"
+                              android:padding="12dp"
+                              android:textColor="#F8FAFC"
+                              android:textColorHint="#64748B" />
+
+                          <EditText
+                              android:id="@+id/etDamEff"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="8dp"
+                              android:background="#1E293B"
+                              android:hint="Overall Turbine-Generator Eff % (default 88)"
+                              android:inputType="numberDecimal"
+                              android:padding="12dp"
+                              android:textColor="#F8FAFC"
+                              android:textColorHint="#64748B" />
+
+                          <EditText
+                              android:id="@+id/etDamArea"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="8dp"
+                              android:background="#1E293B"
+                              android:hint="Reservoir Surface Area in km² (optional)"
+                              android:inputType="numberDecimal"
+                              android:padding="12dp"
+                              android:textColor="#F8FAFC"
+                              android:textColorHint="#64748B" />
+
+                          <EditText
+                              android:id="@+id/etDamRise"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="8dp"
+                              android:background="#1E293B"
+                              android:hint="Water Level Rise / Drop in meters (optional)"
+                              android:inputType="numberDecimal|numberSigned"
+                              android:padding="12dp"
+                              android:textColor="#F8FAFC"
+                              android:textColorHint="#64748B" />
+
+                          <EditText
+                              android:id="@+id/etDamForce"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="8dp"
+                              android:background="#1E293B"
+                              android:hint="Dam Wall Base Width L in meters for Hydrostatic Thrust"
+                              android:inputType="numberDecimal"
+                              android:padding="12dp"
+                              android:textColor="#F8FAFC"
+                              android:textColorHint="#64748B" />
+
+                          <Button
+                              android:id="@+id/btnCalcDam"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="14dp"
+                              android:text="Calculate Dam &amp; Hydro Metrics" />
+
+                          <TextView
+                              android:id="@+id/tvDamOutput"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="12dp"
+                              android:background="#1E293B"
+                              android:padding="14dp"
+                              android:text="Hydro power, discharge volume, storage change &amp; hydrostatic thrust appear here"
+                              android:textColor="#F8FAFC"
+                              android:textIsSelectable="true"
+                              android:textSize="14sp" />
+                      </LinearLayout>
+                  </ScrollView>
+              </FrameLayout>
+          </LinearLayout>
+          EOF
+
+          cat << 'EOF' > KmCalc/app/src/main/java/com/kmcalc/app/MainActivity.kt
+          package com.kmcalc.app
+
+          import android.graphics.Color
+          import android.os.Bundle
+          import android.view.Gravity
+          import android.view.View
+          import android.widget.*
+          import androidx.appcompat.app.AppCompatActivity
+          import com.google.android.material.tabs.TabLayout
+          import java.util.Locale
+          import kotlin.math.acos
+          import kotlin.math.cos
+          import kotlin.math.pow
+          import kotlin.math.sin
+          import kotlin.math.sqrt
+          import kotlin.math.tan
+
+          class MainActivity : AppCompatActivity() {
+
+              private lateinit var tvExpr: TextView
+              private lateinit var tvResult: TextView
+              private var expr = ""
+
+              private val unitData = mapOf(
+                  "Weight" to listOf(
+                      "Kilogram (kg)" to 1.0,
+                      "Gram (g)" to 0.001,
+                      "Milligram (mg)" to 1e-6,
+                      "Metric Tonne (t)" to 1000.0,
+                      "Pound (lb)" to 0.45359237,
+                      "Ounce (oz)" to 0.028349523125
+                  ),
+                  "Length" to listOf(
+                      "Meter (m)" to 1.0,
+                      "Kilometer (km)" to 1000.0,
+                      "Centimeter (cm)" to 0.01,
+                      "Millimeter (mm)" to 0.001,
+                      "Inch (in)" to 0.0254,
+                      "Foot (ft)" to 0.3048,
+                      "Yard (yd)" to 0.9144,
+                      "Mile (mi)" to 1609.344
+                  ),
+                  "Area" to listOf(
+                      "Sq. Meter (m²)" to 1.0,
+                      "Sq. Kilometer (km²)" to 1e6,
+                      "Hectare (ha)" to 10000.0,
+                      "Acre" to 4046.8564224,
+                      "Sq. Foot (ft²)" to 0.09290304,
+                      "Sq. Inch (in²)" to 0.00064516
+                  ),
+                  "Volume" to listOf(
+                      "Cubic Meter (m³)" to 1.0,
+                      "Liter (L)" to 0.001,
+                      "Milliliter (mL)" to 1e-6,
+                      "Cubic Foot (ft³)" to 0.028316846592,
+                      "US Gallon (gal)" to 0.003785411784,
+                      "TMCft (10⁹ ft³)" to 2.8316846592e7
+                  )
+              )
+
+              override fun onCreate(savedInstanceState: Bundle?) {
+                  super.onCreate(savedInstanceState)
+                  setContentView(R.layout.activity_main)
+
+                  setupTabs()
+                  setupCalculator()
+                  setupUnitsTab()
+                  setupElectricalTab()
+                  setupDamTab()
+              }
+
+              private fun setupTabs() {
+                  val tabLayout = findViewById<TabLayout>(R.id.tabLayout)
+                  val panels = listOf(
+                      findViewById<View>(R.id.panelCalc),
+                      findViewById<View>(R.id.panelUnits),
+                      findViewById<View>(R.id.panelElectrical),
+                      findViewById<View>(R.id.panelDam)
+                  )
+                  tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+                      override fun onTabSelected(tab: TabLayout.Tab?) {
+                          val idx = tab?.position ?: 0
+                          panels.forEachIndexed { i, v -> v.visibility = if (i == idx) View.VISIBLE else View.GONE }
+                      }
+                      override fun onTabUnselected(tab: TabLayout.Tab?) {}
+                      override fun onTabReselected(tab: TabLayout.Tab?) {}
+                  })
+              }
+
+              private fun setupCalculator() {
+                  tvExpr = findViewById(R.id.tvExpr)
+                  tvResult = findViewById(R.id.tvResult)
+                  val grid = findViewById<GridLayout>(R.id.gridCalc)
+
+                  val keys = listOf(
+                      "C", "⌫", "%", "/",
+                      "7", "8", "9", "*",
+                      "4", "5", "6", "-",
+                      "1", "2", "3", "+",
+                      "±", "0", ".", "="
+                  )
+
+                  keys.forEach { key ->
+                      val btn = Button(this).apply {
+                          text = key
+                          textSize = 20f
+                          setTextColor(Color.WHITE)
+                          setBackgroundColor(
+                              when (key) {
+                                  "C", "⌫" -> Color.parseColor("#991B1B")
+                                  "=", "+", "-", "*", "/", "%", "±" -> Color.parseColor("#0F766E")
+                                  else -> Color.parseColor("#1E293B")
+                              }
+                          )
+                          val params = GridLayout.LayoutParams().apply {
+                              width = 0
+                              height = 0
+                              columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
+                              rowSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
+                              setMargins(6, 6, 6, 6)
+                          }
+                          layoutParams = params
+                          gravity = Gravity.CENTER
+                          setOnClickListener { onCalcKey(key) }
+                      }
+                      grid.addView(btn)
+                  }
+              }
+
+              private fun onCalcKey(key: String) {
+                  when (key) {
+                      "C" -> {
+                          expr = ""
+                          tvExpr.text = ""
+                          tvResult.text = "0"
+                      }
+                      "⌫" -> {
+                          if (expr.isNotEmpty()) {
+                              expr = expr.dropLast(1)
+                              tvExpr.text = expr
+                          }
+                      }
+                      "=" -> {
+                          try {
+                              val valRes = evalMath(expr.replace("×", "*").replace("÷", "/"))
+                              tvExpr.text = expr
+                              tvResult.text = formatNum(valRes)
+                              expr = formatNum(valRes)
+                          } catch (_: Exception) {
+                              tvResult.text = "Error"
+                          }
+                      }
+                      "±" -> {
+                          if (expr.startsWith("-")) expr = expr.removePrefix("-")
+                          else if (expr.isNotEmpty()) expr = "-$expr"
+                          tvExpr.text = expr
+                      }
+                      else -> {
+                          expr += key
+                          tvExpr.text = expr
+                      }
+                  }
+              }
+
+              // Recursive descent arithmetic parser supporting +, -, *, /, %, parentheses
+              private fun evalMath(s: String): Double {
+                  var pos = -1
+                  var ch = 0
+                  fun nextChar() {
+                      pos++
+                      ch = if (pos < s.length) s[pos].code else -1
+                  }
+                  fun eat(charToEat: Int): Boolean {
+                      while (ch == ' '.code) nextChar()
+                      if (ch == charToEat) {
+                          nextChar()
+                          return true
+                      }
+                      return false
+                  }
+                  fun parseExpression(): Double {
+                      var x = parseTerm()
+                      while (true) {
+                          x = when {
+                              eat('+'.code) -> x + parseTerm()
+                              eat('-'.code) -> x - parseTerm()
+                              else -> return x
+                          }
+                      }
+                  }
+                  fun parseTerm(): Double {
+                      var x = parseFactor()
+                      while (true) {
+                          x = when {
+                              eat('*'.code) -> x * parseFactor()
+                              eat('/'.code) -> x / parseFactor()
+                              eat('%'.code) -> x % parseFactor()
+                              else -> return x
+                          }
+                      }
+                  }
+                  fun parseFactor(): Double {
+                      if (eat('+'.code)) return parseFactor()
+                      if (eat('-'.code)) return -parseFactor()
+                      var x: Double
+                      val startPos = pos
+                      if (eat('('.code)) {
+                          x = parseExpression()
+                          eat(')'.code)
+                      } else if ((ch in '0'.code..'9'.code) || ch == '.'.code) {
+                          while ((ch in '0'.code..'9'.code) || ch == '.'.code) nextChar()
+                          x = s.substring(startPos, pos).toDouble()
+                      } else {
+                          throw RuntimeException("Unexpected char")
+                      }
+                      if (eat('^'.code)) x = x.pow(parseFactor())
+                      return x
+                  }
+                  nextChar()
+                  val result = parseExpression()
+                  if (pos < s.length) throw RuntimeException("Trailing chars")
+                  return result
+              }
+
+              private fun setupUnitsTab() {
+                  val spCat = findViewById<Spinner>(R.id.spUnitCat)
+                  val spFrom = findViewById<Spinner>(R.id.spUnitFrom)
+                  val spTo = findViewById<Spinner>(R.id.spUnitTo)
+                  val etVal = findViewById<EditText>(R.id.etUnitVal)
+                  val btnConvert = findViewById<Button>(R.id.btnConvertUnit)
+                  val tvOut = findViewById<TextView>(R.id.tvUnitOutput)
+
+                  val cats = unitData.keys.toList()
+                  spCat.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, cats)
+
+                  fun populateUnits(cat: String) {
+                      val names = unitData[cat]?.map { it.first } ?: emptyList()
+                      val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, names)
+                      spFrom.adapter = adapter
+                      spTo.adapter = adapter
+                      if (names.size > 1) spTo.setSelection(1)
+                  }
+
+                  populateUnits(cats.first())
+                  spCat.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                      override fun onItemSelected(p0: AdapterView<*>?, p1: View?, pos: Int, p3: Long) {
+                          populateUnits(cats[pos])
+                      }
+                      override fun onNothingSelected(p0: AdapterView<*>?) {}
+                  }
+
+                  btnConvert.setOnClickListener {
+                      val input = etVal.text.toString().toDoubleOrNull()
+                      if (input == null) {
+                          tvOut.text = "Please enter a valid number."
+                          return@setOnClickListener
+                      }
+                      val cat = spCat.selectedItem.toString()
+                      val list = unitData[cat] ?: return@setOnClickListener
+                      val fromFactor = list[spFrom.selectedItemPosition].second
+                      val toFactor = list[spTo.selectedItemPosition].second
+                      val converted = (input * fromFactor) / toFactor
+                      tvOut.text = "${formatNum(input)} ${spFrom.selectedItem} =\n${formatNum(converted)} ${spTo.selectedItem}"
+                  }
+              }
+
+              private fun setupElectricalTab() {
+                  val spMode = findViewById<Spinner>(R.id.spElecMode)
+                  val modes = listOf(
+                      "From kW (input kW)",
+                      "From HP (input HP)",
+                      "From kVA & PF (input kVA)",
+                      "From V & I (input V & I)"
+                  )
+                  spMode.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, modes)
+
+                  val etA = findViewById<EditText>(R.id.etElecKnownA)
+                  val etV = findViewById<EditText>(R.id.etElecVoltage)
+                  val etI = findViewById<EditText>(R.id.etElecCurrent)
+                  val etPf = findViewById<EditText>(R.id.etElecPf)
+                  val etEff = findViewById<EditText>(R.id.etElecEff)
+                  val rbImpHp = findViewById<RadioButton>(R.id.rbImpHp)
+                  val rbThreePhase = findViewById<RadioButton>(R.id.rbThreePhase)
+                  val btnCalc = findViewById<Button>(R.id.btnCalcElec)
+                  val tvOut = findViewById<TextView>(R.id.tvElecOutput)
+
+                  btnCalc.setOnClickListener {
+                      val wattsPerHp = if (rbImpHp.isChecked) 745.699872 else 735.49875
+                      val isThreePhase = rbThreePhase.isChecked
+                      val phaseMult = if (isThreePhase) sqrt(3.0) else 1.0
+
+                      val v = etV.text.toString().toDoubleOrNull() ?: 415.0
+                      val pf = (etPf.text.toString().toDoubleOrNull() ?: 0.85).coerceIn(0.01, 1.0)
+                      val eff = ((etEff.text.toString().toDoubleOrNull() ?: 95.0) / 100.0).coerceIn(0.01, 1.0)
+                      val knownA = etA.text.toString().toDoubleOrNull() ?: 0.0
+                      val knownI = etI.text.toString().toDoubleOrNull() ?: 0.0
+
+                      // Compute electrical output kW (P_out) and input kW (P_in)
+                      val pOutKw: Double
+                      val pInKw: Double
+
+                      when (spMode.selectedItemPosition) {
+                          0 -> { // From kW
+                              pOutKw = knownA
+                              pInKw = pOutKw / eff
+                          }
+                          1 -> { // From HP (mechanical output HP -> kW)
+                              pOutKw = (knownA * wattsPerHp) / 1000.0
+                              pInKw = pOutKw / eff
+                          }
+                          2 -> { // From kVA & PF (apparent power S -> active power kW)
+                              val sKva = knownA
+                              pOutKw = sKva * pf
+                              pInKw = pOutKw / eff
+                          }
+                          else -> { // From V & I
+                              pOutKw = (phaseMult * v * knownI * pf) / 1000.0
+                              pInKw = pOutKw / eff
+                          }
+                      }
+
+                      val hpMetricOut = (pOutKw * 1000.0) / 735.49875
+                      val hpImpOut = (pOutKw * 1000.0) / 745.699872
+                      val hpSelectedOut = (pOutKw * 1000.0) / wattsPerHp
+
+                      val sKvaOut = pOutKw / pf
+                      val sKvaIn = pInKw / pf
+
+                      val sinPhi = sqrt((1.0 - pf * pf).coerceAtLeast(0.0))
+                      val qKvarOut = sKvaOut * sinPhi
+                      val qKvarIn = sKvaIn * sinPhi
+
+                      val currentOutA = if (v > 0) (sKvaOut * 1000.0) / (phaseMult * v) else 0.0
+                      val currentInA = if (v > 0) (sKvaIn * 1000.0) / (phaseMult * v) else 0.0
+
+                      val zOhms = if (currentOutA > 0) {
+                          if (isThreePhase) (v / sqrt(3.0)) / currentOutA else v / currentOutA
+                      } else 0.0
+                      val rOhms = zOhms * pf
+                      val xOhms = zOhms * sinPhi
+                      val angleDeg = Math.toDegrees(acos(pf))
+
+                      val hpLabel = if (rbImpHp.isChecked) "Imperial HP (745.7 W)" else "Metric HP (735.5 W)"
+                      val sysLabel = if (isThreePhase) "3-Phase (√3)" else "1-Phase"
+
+                      tvOut.text = """
+                          System: $sysLabel | Basis: $hpLabel
+                          Voltage (V): ${formatNum(v)} V | PF: ${formatNum(pf)} (θ = ${formatNum(angleDeg)}°) | Eff: ${formatNum(eff * 100)}%
+
+                          [Active Power (kW)]
+                          • Output Power (P_out): ${formatNum(pOutKw)} kW (${formatNum(pOutKw * 1000)} W)
+                          • Input Power  (P_in) : ${formatNum(pInKw)} kW (${formatNum(pInKw * 1000)} W)
+
+                          [Horsepower (HP)]
+                          • Selected HP (P_out): ${formatNum(hpSelectedOut)} HP
+                          • Metric HP (735.5W) : ${formatNum(hpMetricOut)} HP
+                          • Imp. HP (745.7W)   : ${formatNum(hpImpOut)} HP
+
+                          [Apparent Power (kVA) & Reactive Power (kVAR)]
+                          • Apparent Power (S_out): ${formatNum(sKvaOut)} kVA | (S_in): ${formatNum(sKvaIn)} kVA
+                          • Reactive Power (Q_out): ${formatNum(qKvarOut)} kVAR | (Q_in): ${formatNum(qKvarIn)} kVAR
+
+                          [Current (Amps) & Equivalent Impedance]
+                          • Load / Output Current (I_out): ${formatNum(currentOutA)} A
+                          • Supply / Input Current (I_in): ${formatNum(currentInA)} A
+                          • Impedance (Z): ${formatNum(zOhms)} Ω | R: ${formatNum(rOhms)} Ω | X: ${formatNum(xOhms)} Ω
+                      """.trimIndent()
+                  }
+              }
+
+              private fun setupDamTab() {
+                  val etHead = findViewById<EditText>(R.id.etDamHead)
+                  val etFlow = findViewById<EditText>(R.id.etDamFlow)
+                  val etEff = findViewById<EditText>(R.id.etDamEff)
+                  val etArea = findViewById<EditText>(R.id.etDamArea)
+                  val etRise = findViewById<EditText>(R.id.etDamRise)
+                  val etForce = findViewById<EditText>(R.id.etDamForce)
+                  val btnCalc = findViewById<Button>(R.id.btnCalcDam)
+                  val tvOut = findViewById<TextView>(R.id.tvDamOutput)
+
+                  btnCalc.setOnClickListener {
+                      val h = etHead.text.toString().toDoubleOrNull() ?: 0.0
+                      val q = etFlow.text.toString().toDoubleOrNull() ?: 0.0
+                      val eta = ((etEff.text.toString().toDoubleOrNull() ?: 88.0) / 100.0).coerceIn(0.01, 1.0)
+                      val areaKm2 = etArea.text.toString().toDoubleOrNull() ?: 0.0
+                      val deltaH = etRise.text.toString().toDoubleOrNull() ?: 0.0
+                      val baseWidth = etForce.text.toString().toDoubleOrNull() ?: 0.0
+
+                      // Standard gravity g = 9.81 m/s², water density ρ = 1000 kg/m³
+                      val g = 9.81
+                      val rho = 1000.0
+                      val hydraulicKw = (rho * g * q * h) / 1000.0
+                      val genKw = hydraulicKw * eta
+                      val genMw = genKw / 1000.0
+                      val genHpMetric = (genKw * 1000.0) / 735.49875
+
+                      val dailyVolM3 = q * 86400.0
+                      val dailyVolMcft = dailyVolM3 / 28316.846592 // Mcft = 10^6 ft³
+                      val dailyEnergyMwh = (genKw * 24.0) / 1000.0
+
+                      val areaM2 = areaKm2 * 1e6
+                      val storageChangeM3 = areaM2 * deltaH
+                      val storageChangeMcft = storageChangeM3 / 28316.846592
+                      val storageChangeTmc = storageChangeM3 / 2.8316846592e7
+
+                      // Hydrostatic thrust per meter run of dam wall: F = 0.5 * ρ * g * H²
+                      val thrustKnPerM = (0.5 * rho * g * h * h) / 1000.0
+                      val hCenterFromBase = h / 3.0
+                      val overturningMomentKnMPerM = thrustKnPerM * hCenterFromBase
+
+                      // Sliding & overturning safety check estimate (concrete ρ_c ≈ 2400 kg/m³)
+                      val wallAreaPerM = 0.5 * baseWidth * h
+                      val selfWeightKnPerM = (wallAreaPerM * 2400.0 * g) / 1000.0
+                      val frictionCoeff = 0.7
+                      val slidingFos = if (thrustKnPerM > 0) (frictionCoeff * selfWeightKnPerM) / thrustKnPerM else 0.0
+                      val overturningFos = if (overturningMomentKnMPerM > 0) (selfWeightKnPerM * (baseWidth / 3.0)) / overturningMomentKnMPerM else 0.0
+
+                      tvOut.text = """
+                          [Hydro Power Generation]
+                          • Hydraulic Power : ${formatNum(hydraulicKw)} kW (${formatNum(hydraulicKw / 1000.0)} MW)
+                          • Generator Output: ${formatNum(genMw)} MW (${formatNum(genKw)} kW)
+                          • Metric HP Output: ${formatNum(genHpMetric)} HP
+                          • Est. 24h Energy : ${formatNum(dailyEnergyMwh)} MWh (${formatNum(dailyEnergyMwh * 1000.0)} kWh)
+
+                          [Discharge & Reservoir Storage]
+                          • Daily Inflow/Outflow: ${formatNum(dailyVolM3)} m³ (${formatNum(dailyVolMcft)} Mcft)
+                          • Storage Change (ΔV) : ${formatNum(storageChangeM3)} m³
+                            ↳ ${formatNum(storageChangeMcft)} Mcft | ${formatNum(storageChangeTmc)} TMC
+
+                          [Hydrostatic Thrust & Stability (per m run)]
+                          • Hydrostatic Thrust (F): ${formatNum(thrustKnPerM)} kN/m
+                          • Center of Pressure    : ${formatNum(hCenterFromBase)} m above bed
+                          • Overturning Moment (M): ${formatNum(overturningMomentKnMPerM)} kN·m/m
+                          • Est. Wall Wt (B=${formatNum(baseWidth)}m): ${formatNum(selfWeightKnPerM)} kN/m
+                          • Sliding FoS (μ=0.7)   : ${formatNum(slidingFos)} | Overturning FoS: ${formatNum(overturningFos)}
+                      """.trimIndent()
+                  }
+              }
+
+              private fun formatNum(value: Double): String {
+                  if (value.isNaN() || value.isInfinite()) return "0"
+                  return String.format(Locale.US, "%.4f", value).trimEnd('0').trimEnd('.')
+              }
+          }
+          EOF
+
+      - name: Generate Gradle Wrapper
+        run: |
+          cd KmCalc
+          gradle wrapper --gradle-version 8.5 --distribution-type all
+
+      - name: Build Debug APK
+        run: |
+          cd KmCalc
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: KmCalc-debug-apk
+          path: KmCalc/app/build/outputs/apk/debug/app-debug.apk
