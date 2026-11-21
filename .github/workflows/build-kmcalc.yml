@@ -306,169 +306,421 @@ jobs:
                       </LinearLayout>
                   </ScrollView>
 
-                  <!-- TAB 2: ELECTRICAL CONVERTER & QUANTITIES -->
-                  <ScrollView
+                  <!-- TAB 2: ELECTRICAL SECTION (MOTORS, TRANSFORMER, CABLE) -->
+                  <LinearLayout
                       android:id="@+id/panelElectrical"
                       android:layout_width="match_parent"
                       android:layout_height="match_parent"
-                      android:padding="14dp"
+                      android:orientation="vertical"
                       android:visibility="gone">
 
-                      <LinearLayout
+                      <com.google.android.material.tabs.TabLayout
+                          android:id="@+id/elecSubTabLayout"
                           android:layout_width="match_parent"
                           android:layout_height="wrap_content"
-                          android:orientation="vertical">
+                          android:background="#162032"
+                          app:tabGravity="fill"
+                          app:tabIndicatorColor="#38BDF8"
+                          app:tabMode="fixed"
+                          app:tabSelectedTextColor="#38BDF8"
+                          app:tabTextColor="#94A3B8">
 
-                          <TextView
-                              android:layout_width="wrap_content"
-                              android:layout_height="wrap_content"
-                              android:text="kW &lt;-&gt; HP Converter &amp; System Quantities"
-                              android:textColor="#2DD4BF"
-                              android:textSize="16sp"
-                              android:textStyle="bold" />
+                          <com.google.android.material.tabs.TabItem android:text="Motors" />
+                          <com.google.android.material.tabs.TabItem android:text="Transformer" />
+                          <com.google.android.material.tabs.TabItem android:text="Cable" />
+                      </com.google.android.material.tabs.TabLayout>
 
-                          <RadioGroup
-                              android:id="@+id/rgHpType"
+                      <FrameLayout
+                          android:layout_width="match_parent"
+                          android:layout_height="0dp"
+                          android:layout_weight="1">
+
+                          <!-- SUB-TAB 2A: MOTORS -->
+                          <ScrollView
+                              android:id="@+id/subPanelMotors"
                               android:layout_width="match_parent"
-                              android:layout_height="wrap_content"
-                              android:layout_marginTop="8dp"
-                              android:orientation="horizontal">
+                              android:layout_height="match_parent"
+                              android:padding="14dp">
 
-                              <RadioButton
-                                  android:id="@+id/rbMetricHp"
-                                  android:layout_width="wrap_content"
+                              <LinearLayout
+                                  android:layout_width="match_parent"
                                   android:layout_height="wrap_content"
-                                  android:checked="true"
-                                  android:text="Metric HP (735.5 W)"
-                                  android:textColor="#E2E8F0" />
+                                  android:orientation="vertical">
 
-                              <RadioButton
-                                  android:id="@+id/rbImpHp"
-                                  android:layout_width="wrap_content"
-                                  android:layout_height="wrap_content"
-                                  android:layout_marginStart="12dp"
-                                  android:text="Imp HP (745.7 W)"
-                                  android:textColor="#E2E8F0" />
-                          </RadioGroup>
+                                  <TextView
+                                      android:layout_width="wrap_content"
+                                      android:layout_height="wrap_content"
+                                      android:text="Motor Calculations (kW, HP, Amps, Voltage, kVA, Fuse)"
+                                      android:textColor="#2DD4BF"
+                                      android:textSize="15sp"
+                                      android:textStyle="bold" />
 
-                          <RadioGroup
-                              android:id="@+id/rgPhase"
+                                  <RadioGroup
+                                      android:id="@+id/rgHpType"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="8dp"
+                                      android:orientation="horizontal">
+
+                                      <RadioButton
+                                          android:id="@+id/rbMetricHp"
+                                          android:layout_width="wrap_content"
+                                          android:layout_height="wrap_content"
+                                          android:checked="true"
+                                          android:text="Metric HP (735.5 W)"
+                                          android:textColor="#E2E8F0" />
+
+                                      <RadioButton
+                                          android:id="@+id/rbImpHp"
+                                          android:layout_width="wrap_content"
+                                          android:layout_height="wrap_content"
+                                          android:layout_marginStart="12dp"
+                                          android:text="Imp HP (745.7 W)"
+                                          android:textColor="#E2E8F0" />
+                                  </RadioGroup>
+
+                                  <RadioGroup
+                                      android:id="@+id/rgPhase"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="4dp"
+                                      android:orientation="horizontal">
+
+                                      <RadioButton
+                                          android:id="@+id/rbThreePhase"
+                                          android:layout_width="wrap_content"
+                                          android:layout_height="wrap_content"
+                                          android:checked="true"
+                                          android:text="3-Phase (√3·V·I)"
+                                          android:textColor="#E2E8F0" />
+
+                                      <RadioButton
+                                          android:id="@+id/rbSinglePhase"
+                                          android:layout_width="wrap_content"
+                                          android:layout_height="wrap_content"
+                                          android:layout_marginStart="16dp"
+                                          android:text="1-Phase (V·I)"
+                                          android:textColor="#E2E8F0" />
+                                  </RadioGroup>
+
+                                  <TextView
+                                      android:layout_width="wrap_content"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="6dp"
+                                      android:text="Solve From"
+                                      android:textColor="#CBD5E1" />
+
+                                  <Spinner
+                                      android:id="@+id/spElecMode"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="46dp"
+                                      android:layout_marginTop="4dp"
+                                      android:background="#1E293B" />
+
+                                  <EditText
+                                      android:id="@+id/etElecKnownA"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="8dp"
+                                      android:background="#1E293B"
+                                      android:hint="Power value: kW, HP, or kVA (per mode)"
+                                      android:inputType="numberDecimal"
+                                      android:padding="12dp"
+                                      android:textColor="#F8FAFC"
+                                      android:textColorHint="#64748B" />
+
+                                  <EditText
+                                      android:id="@+id/etElecVoltage"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="8dp"
+                                      android:background="#1E293B"
+                                      android:hint="Voltage V (default 415 V)"
+                                      android:inputType="numberDecimal"
+                                      android:padding="12dp"
+                                      android:textColor="#F8FAFC"
+                                      android:textColorHint="#64748B" />
+
+                                  <EditText
+                                      android:id="@+id/etElecCurrent"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="8dp"
+                                      android:background="#1E293B"
+                                      android:hint="Current I in Amps (if mode is From V &amp; I)"
+                                      android:inputType="numberDecimal"
+                                      android:padding="12dp"
+                                      android:textColor="#F8FAFC"
+                                      android:textColorHint="#64748B" />
+
+                                  <EditText
+                                      android:id="@+id/etElecPf"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="8dp"
+                                      android:background="#1E293B"
+                                      android:hint="Power Factor cos(φ) (0.1 to 1.0, default 0.85)"
+                                      android:inputType="numberDecimal"
+                                      android:padding="12dp"
+                                      android:textColor="#F8FAFC"
+                                      android:textColorHint="#64748B" />
+
+                                  <EditText
+                                      android:id="@+id/etElecEff"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="8dp"
+                                      android:background="#1E293B"
+                                      android:hint="Efficiency % (1 to 100, default 90)"
+                                      android:inputType="numberDecimal"
+                                      android:padding="12dp"
+                                      android:textColor="#F8FAFC"
+                                      android:textColorHint="#64748B" />
+
+                                  <Button
+                                      android:id="@+id/btnCalcElec"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="12dp"
+                                      android:text="Calculate Motor Quantities" />
+
+                                  <TextView
+                                      android:id="@+id/tvElecOutput"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="12dp"
+                                      android:background="#1E293B"
+                                      android:padding="14dp"
+                                      android:text="Enter motor parameters and tap Calculate"
+                                      android:textColor="#F8FAFC"
+                                      android:textIsSelectable="true"
+                                      android:textSize="14sp" />
+                              </LinearLayout>
+                          </ScrollView>
+
+                          <!-- SUB-TAB 2B: TRANSFORMER -->
+                          <ScrollView
+                              android:id="@+id/subPanelTransformer"
                               android:layout_width="match_parent"
-                              android:layout_height="wrap_content"
-                              android:layout_marginTop="6dp"
-                              android:orientation="horizontal">
-
-                              <RadioButton
-                                  android:id="@+id/rbThreePhase"
-                                  android:layout_width="wrap_content"
-                                  android:layout_height="wrap_content"
-                                  android:checked="true"
-                                  android:text="3-Phase (√3·V·I)"
-                                  android:textColor="#E2E8F0" />
-
-                              <RadioButton
-                                  android:id="@+id/rbSinglePhase"
-                                  android:layout_width="wrap_content"
-                                  android:layout_height="wrap_content"
-                                  android:layout_marginStart="16dp"
-                                  android:text="1-Phase (V·I)"
-                                  android:textColor="#E2E8F0" />
-                          </RadioGroup>
-
-                          <TextView
-                              android:layout_width="wrap_content"
-                              android:layout_height="wrap_content"
-                              android:layout_marginTop="8dp"
-                              android:text="Primary Solve Mode"
-                              android:textColor="#CBD5E1" />
-
-                          <Spinner
-                              android:id="@+id/spElecMode"
-                              android:layout_width="match_parent"
-                              android:layout_height="46dp"
-                              android:layout_marginTop="4dp"
-                              android:background="#1E293B" />
-
-                          <EditText
-                              android:id="@+id/etElecKnownA"
-                              android:layout_width="match_parent"
-                              android:layout_height="wrap_content"
-                              android:layout_marginTop="10dp"
-                              android:background="#1E293B"
-                              android:hint="Enter kW or HP (depending on mode)"
-                              android:inputType="numberDecimal"
-                              android:padding="12dp"
-                              android:textColor="#F8FAFC"
-                              android:textColorHint="#64748B" />
-
-                          <EditText
-                              android:id="@+id/etElecVoltage"
-                              android:layout_width="match_parent"
-                              android:layout_height="wrap_content"
-                              android:layout_marginTop="8dp"
-                              android:background="#1E293B"
-                              android:hint="Line/Phase Voltage V (default 415)"
-                              android:inputType="numberDecimal"
-                              android:padding="12dp"
-                              android:textColor="#F8FAFC"
-                              android:textColorHint="#64748B" />
-
-                          <EditText
-                              android:id="@+id/etElecCurrent"
-                              android:layout_width="match_parent"
-                              android:layout_height="wrap_content"
-                              android:layout_marginTop="8dp"
-                              android:background="#1E293B"
-                              android:hint="Current I in Amps (optional if solving from kW/HP)"
-                              android:inputType="numberDecimal"
-                              android:padding="12dp"
-                              android:textColor="#F8FAFC"
-                              android:textColorHint="#64748B" />
-
-                          <EditText
-                              android:id="@+id/etElecPf"
-                              android:layout_width="match_parent"
-                              android:layout_height="wrap_content"
-                              android:layout_marginTop="8dp"
-                              android:background="#1E293B"
-                              android:hint="Power Factor cos(φ) (0.1 to 1.0, default 0.85)"
-                              android:inputType="numberDecimal"
-                              android:padding="12dp"
-                              android:textColor="#F8FAFC"
-                              android:textColorHint="#64748B" />
-
-                          <EditText
-                              android:id="@+id/etElecEff"
-                              android:layout_width="match_parent"
-                              android:layout_height="wrap_content"
-                              android:layout_marginTop="8dp"
-                              android:background="#1E293B"
-                              android:hint="Efficiency % (1 to 100, default 95)"
-                              android:inputType="numberDecimal"
-                              android:padding="12dp"
-                              android:textColor="#F8FAFC"
-                              android:textColorHint="#64748B" />
-
-                          <Button
-                              android:id="@+id/btnCalcElec"
-                              android:layout_width="match_parent"
-                              android:layout_height="wrap_content"
-                              android:layout_marginTop="14dp"
-                              android:text="Calculate All Electrical Quantities" />
-
-                          <TextView
-                              android:id="@+id/tvElecOutput"
-                              android:layout_width="match_parent"
-                              android:layout_height="wrap_content"
-                              android:layout_marginTop="12dp"
-                              android:background="#1E293B"
+                              android:layout_height="match_parent"
                               android:padding="14dp"
-                              android:text="Enter values and tap Calculate"
-                              android:textColor="#F8FAFC"
-                              android:textIsSelectable="true"
-                              android:textSize="14sp" />
-                      </LinearLayout>
-                  </ScrollView>
+                              android:visibility="gone">
+
+                              <LinearLayout
+                                  android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:orientation="vertical">
+
+                                  <TextView
+                                      android:layout_width="wrap_content"
+                                      android:layout_height="wrap_content"
+                                      android:text="Transformer Calculations (kVA, HV, LV, Amps, Fuse)"
+                                      android:textColor="#38BDF8"
+                                      android:textSize="15sp"
+                                      android:textStyle="bold" />
+
+                                  <RadioGroup
+                                      android:id="@+id/rgTxPhase"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="8dp"
+                                      android:orientation="horizontal">
+
+                                      <RadioButton
+                                          android:id="@+id/rbTxThreePhase"
+                                          android:layout_width="wrap_content"
+                                          android:layout_height="wrap_content"
+                                          android:checked="true"
+                                          android:text="3-Phase"
+                                          android:textColor="#E2E8F0" />
+
+                                      <RadioButton
+                                          android:id="@+id/rbTxSinglePhase"
+                                          android:layout_width="wrap_content"
+                                          android:layout_height="wrap_content"
+                                          android:layout_marginStart="20dp"
+                                          android:text="1-Phase"
+                                          android:textColor="#E2E8F0" />
+                                  </RadioGroup>
+
+                                  <EditText
+                                      android:id="@+id/etTxKva"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="8dp"
+                                      android:background="#1E293B"
+                                      android:hint="Transformer Rating in kVA (e.g., 250)"
+                                      android:inputType="numberDecimal"
+                                      android:padding="12dp"
+                                      android:textColor="#F8FAFC"
+                                      android:textColorHint="#64748B" />
+
+                                  <EditText
+                                      android:id="@+id/etTxHv"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="8dp"
+                                      android:background="#1E293B"
+                                      android:hint="HV Voltage in V or kV (e.g., 22000 or 22)"
+                                      android:inputType="numberDecimal"
+                                      android:padding="12dp"
+                                      android:textColor="#F8FAFC"
+                                      android:textColorHint="#64748B" />
+
+                                  <EditText
+                                      android:id="@+id/etTxLv"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="8dp"
+                                      android:background="#1E293B"
+                                      android:hint="LV Voltage in V (e.g., 415)"
+                                      android:inputType="numberDecimal"
+                                      android:padding="12dp"
+                                      android:textColor="#F8FAFC"
+                                      android:textColorHint="#64748B" />
+
+                                  <EditText
+                                      android:id="@+id/etTxPf"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="8dp"
+                                      android:background="#1E293B"
+                                      android:hint="Load Power Factor cos(φ) (default 0.85)"
+                                      android:inputType="numberDecimal"
+                                      android:padding="12dp"
+                                      android:textColor="#F8FAFC"
+                                      android:textColorHint="#64748B" />
+
+                                  <EditText
+                                      android:id="@+id/etTxZ"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="8dp"
+                                      android:background="#1E293B"
+                                      android:hint="Impedance %Z (default 4.5 for DT)"
+                                      android:inputType="numberDecimal"
+                                      android:padding="12dp"
+                                      android:textColor="#F8FAFC"
+                                      android:textColorHint="#64748B" />
+
+                                  <Button
+                                      android:id="@+id/btnCalcTx"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="12dp"
+                                      android:text="Calculate Transformer Quantities" />
+
+                                  <TextView
+                                      android:id="@+id/tvTxOutput"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="12dp"
+                                      android:background="#1E293B"
+                                      android:padding="14dp"
+                                      android:text="Enter kVA, HV, LV to calculate HV/LV Amps, kW, kVAR &amp; Fuse ratings"
+                                      android:textColor="#F8FAFC"
+                                      android:textIsSelectable="true"
+                                      android:textSize="14sp" />
+                              </LinearLayout>
+                          </ScrollView>
+
+                          <!-- SUB-TAB 2C: CABLE & FUSE -->
+                          <ScrollView
+                              android:id="@+id/subPanelCable"
+                              android:layout_width="match_parent"
+                              android:layout_height="match_parent"
+                              android:padding="14dp"
+                              android:visibility="gone">
+
+                              <LinearLayout
+                                  android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:orientation="vertical">
+
+                                  <TextView
+                                      android:layout_width="wrap_content"
+                                      android:layout_height="wrap_content"
+                                      android:text="Cable Rating (Cu / Al), SWG, sq.mm &amp; Fuse Sizing"
+                                      android:textColor="#2DD4BF"
+                                      android:textSize="15sp"
+                                      android:textStyle="bold" />
+
+                                  <TextView
+                                      android:layout_width="wrap_content"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="8dp"
+                                      android:text="Select SWG Size (Reference)"
+                                      android:textColor="#CBD5E1" />
+
+                                  <Spinner
+                                      android:id="@+id/spSwg"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="46dp"
+                                      android:layout_marginTop="4dp"
+                                      android:background="#1E293B" />
+
+                                  <TextView
+                                      android:layout_width="wrap_content"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="8dp"
+                                      android:text="Select Conductor Cross-Section (sq.mm)"
+                                      android:textColor="#CBD5E1" />
+
+                                  <Spinner
+                                      android:id="@+id/spSqMm"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="46dp"
+                                      android:layout_marginTop="4dp"
+                                      android:background="#1E293B" />
+
+                                  <EditText
+                                      android:id="@+id/etCableAmps"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="8dp"
+                                      android:background="#1E293B"
+                                      android:hint="Load / Circuit Current in Amps (e.g., 65)"
+                                      android:inputType="numberDecimal"
+                                      android:padding="12dp"
+                                      android:textColor="#F8FAFC"
+                                      android:textColorHint="#64748B" />
+
+                                  <TextView
+                                      android:layout_width="wrap_content"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="8dp"
+                                      android:text="Equipment Type for Fuse Sizing"
+                                      android:textColor="#CBD5E1" />
+
+                                  <Spinner
+                                      android:id="@+id/spFuseEquip"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="46dp"
+                                      android:layout_marginTop="4dp"
+                                      android:background="#1E293B" />
+
+                                  <Button
+                                      android:id="@+id/btnCalcCable"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="12dp"
+                                      android:text="Calculate Cable &amp; Fuse Ratings" />
+
+                                  <TextView
+                                      android:id="@+id/tvCableOutput"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginTop="12dp"
+                                      android:background="#1E293B"
+                                      android:padding="14dp"
+                                      android:text="Copper &amp; Aluminium ampacity, SWG/sq.mm lookup &amp; fuse sq.mm appear here"
+                                      android:textColor="#F8FAFC"
+                                      android:textIsSelectable="true"
+                                      android:textSize="14sp" />
+                              </LinearLayout>
+                          </ScrollView>
+                      </FrameLayout>
+                  </LinearLayout>
 
                   <!-- TAB 3: DAM & HYDROLOGY CALCULATIONS -->
                   <ScrollView
@@ -598,6 +850,7 @@ jobs:
           import androidx.appcompat.app.AppCompatActivity
           import com.google.android.material.tabs.TabLayout
           import java.util.Locale
+          import kotlin.math.PI
           import kotlin.math.acos
           import kotlin.math.pow
           import kotlin.math.sqrt
@@ -645,6 +898,44 @@ jobs:
                   )
               )
 
+              // SWG table: label, diameter in mm, approximate fusing current for Cu (A)
+              private val swgTable = listOf(
+                  Triple("10 SWG", 3.251, 215.0),
+                  Triple("12 SWG", 2.642, 155.0),
+                  Triple("14 SWG", 2.032, 105.0),
+                  Triple("16 SWG", 1.626, 75.0),
+                  Triple("18 SWG", 1.219, 48.0),
+                  Triple("20 SWG", 0.914, 31.0),
+                  Triple("22 SWG", 0.711, 21.0),
+                  Triple("24 SWG", 0.559, 14.5),
+                  Triple("26 SWG", 0.457, 10.8),
+                  Triple("28 SWG", 0.376, 8.0),
+                  Triple("30 SWG", 0.315, 6.2),
+                  Triple("32 SWG", 0.274, 5.0),
+                  Triple("34 SWG", 0.234, 4.0),
+                  Triple("36 SWG", 0.193, 3.0)
+              )
+
+              // Standard cable sizes in sq.mm: area (mm2), Cu rating (A), Al rating (A)
+              private val cableSizes = listOf(
+                  Triple(1.5, 16.0, 12.0),
+                  Triple(2.5, 22.0, 17.0),
+                  Triple(4.0, 30.0, 23.0),
+                  Triple(6.0, 38.0, 29.0),
+                  Triple(10.0, 52.0, 40.0),
+                  Triple(16.0, 70.0, 54.0),
+                  Triple(25.0, 92.0, 71.0),
+                  Triple(35.0, 114.0, 88.0),
+                  Triple(50.0, 138.0, 107.0),
+                  Triple(70.0, 175.0, 136.0),
+                  Triple(95.0, 212.0, 165.0),
+                  Triple(120.0, 246.0, 192.0),
+                  Triple(150.0, 282.0, 220.0),
+                  Triple(185.0, 322.0, 252.0),
+                  Triple(240.0, 380.0, 298.0),
+                  Triple(300.0, 436.0, 342.0)
+              )
+
               override fun onCreate(savedInstanceState: Bundle?) {
                   super.onCreate(savedInstanceState)
                   setContentView(R.layout.activity_main)
@@ -652,7 +943,10 @@ jobs:
                   setupTabs()
                   setupCalculator()
                   setupUnitsTab()
-                  setupElectricalTab()
+                  setupElectricalSubTabs()
+                  setupMotorsSubTab()
+                  setupTransformerSubTab()
+                  setupCableSubTab()
                   setupDamTab()
               }
 
@@ -668,6 +962,23 @@ jobs:
                       override fun onTabSelected(tab: TabLayout.Tab?) {
                           val idx = tab?.position ?: 0
                           panels.forEachIndexed { i, v -> v.visibility = if (i == idx) View.VISIBLE else View.GONE }
+                      }
+                      override fun onTabUnselected(tab: TabLayout.Tab?) {}
+                      override fun onTabReselected(tab: TabLayout.Tab?) {}
+                  })
+              }
+
+              private fun setupElectricalSubTabs() {
+                  val subTab = findViewById<TabLayout>(R.id.elecSubTabLayout)
+                  val subPanels = listOf(
+                      findViewById<View>(R.id.subPanelMotors),
+                      findViewById<View>(R.id.subPanelTransformer),
+                      findViewById<View>(R.id.subPanelCable)
+                  )
+                  subTab.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+                      override fun onTabSelected(tab: TabLayout.Tab?) {
+                          val idx = tab?.position ?: 0
+                          subPanels.forEachIndexed { i, v -> v.visibility = if (i == idx) View.VISIBLE else View.GONE }
                       }
                       override fun onTabUnselected(tab: TabLayout.Tab?) {}
                       override fun onTabReselected(tab: TabLayout.Tab?) {}
@@ -862,7 +1173,7 @@ jobs:
                   }
               }
 
-              private fun setupElectricalTab() {
+              private fun setupMotorsSubTab() {
                   val spMode = findViewById<Spinner>(R.id.spElecMode)
                   val modes = listOf(
                       "From kW (input kW)",
@@ -889,7 +1200,7 @@ jobs:
 
                       val v = etV.text.toString().toDoubleOrNull() ?: 415.0
                       val pf = (etPf.text.toString().toDoubleOrNull() ?: 0.85).coerceIn(0.01, 1.0)
-                      val eff = ((etEff.text.toString().toDoubleOrNull() ?: 95.0) / 100.0).coerceIn(0.01, 1.0)
+                      val eff = ((etEff.text.toString().toDoubleOrNull() ?: 90.0) / 100.0).coerceIn(0.01, 1.0)
                       val knownA = etA.text.toString().toDoubleOrNull() ?: 0.0
                       val knownI = etI.text.toString().toDoubleOrNull() ?: 0.0
 
@@ -911,8 +1222,8 @@ jobs:
                               pInKw = pOutKw / eff
                           }
                           else -> {
-                              pOutKw = (phaseMult * v * knownI * pf) / 1000.0
-                              pInKw = pOutKw / eff
+                              pOutKw = (phaseMult * v * knownI * pf * eff) / 1000.0
+                              pInKw = (phaseMult * v * knownI * pf) / 1000.0
                           }
                       }
 
@@ -922,7 +1233,6 @@ jobs:
 
                       val sKvaOut = pOutKw / pf
                       val sKvaIn = pInKw / pf
-
                       val sinPhi = sqrt((1.0 - pf * pf).coerceAtLeast(0.0))
                       val qKvarOut = sKvaOut * sinPhi
                       val qKvarIn = sKvaIn * sinPhi
@@ -930,39 +1240,164 @@ jobs:
                       val currentOutA = if (v > 0) (sKvaOut * 1000.0) / (phaseMult * v) else 0.0
                       val currentInA = if (v > 0) (sKvaIn * 1000.0) / (phaseMult * v) else 0.0
 
-                      val zOhms = if (currentOutA > 0) {
-                          if (isThreePhase) (v / sqrt(3.0)) / currentOutA else v / currentOutA
+                      val zOhms = if (currentInA > 0) {
+                          if (isThreePhase) (v / sqrt(3.0)) / currentInA else v / currentInA
                       } else 0.0
                       val rOhms = zOhms * pf
                       val xOhms = zOhms * sinPhi
                       val angleDeg = Math.toDegrees(acos(pf))
 
-                      val hpLabel = if (rbImpHp.isChecked) "Imperial HP (745.7 W)" else "Metric HP (735.5 W)"
-                      val sysLabel = if (isThreePhase) "3-Phase (√3)" else "1-Phase"
+                      // Motor starting/DOL fuse estimate (~1.5x to 2.5x FLC)
+                      val recFuseA = currentInA * 1.5
+                      val recFuseSqMm = fuseWireSqMmFromCurrent(recFuseA)
+                      val recCable = suggestCable(currentInA * 1.25)
+
+                      val hpLabel = if (rbImpHp.isChecked) "Imp HP (745.7 W)" else "Metric HP (735.5 W)"
+                      val sysLabel = if (isThreePhase) "3-Phase" else "1-Phase"
 
                       tvOut.text = """
                           System: $sysLabel | Basis: $hpLabel
-                          Voltage (V): ${formatNum(v)} V | PF: ${formatNum(pf)} (θ = ${formatNum(angleDeg)}°) | Eff: ${formatNum(eff * 100)}%
+                          Voltage: ${formatNum(v)} V | PF: ${formatNum(pf)} (θ=${formatNum(angleDeg)}°) | Eff: ${formatNum(eff * 100)}%
 
-                          [Active Power (kW)]
-                          • Output Power (P_out): ${formatNum(pOutKw)} kW (${formatNum(pOutKw * 1000)} W)
-                          • Input Power  (P_in) : ${formatNum(pInKw)} kW (${formatNum(pInKw * 1000)} W)
+                          [Power & HP]
+                          • Output (P_out): ${formatNum(pOutKw)} kW | Input (P_in): ${formatNum(pInKw)} kW
+                          • HP (${hpLabel}): ${formatNum(hpSelectedOut)} HP
+                          • Metric HP: ${formatNum(hpMetricOut)} HP | Imp HP: ${formatNum(hpImpOut)} HP
+                          • Apparent: ${formatNum(sKvaIn)} kVA (in) / ${formatNum(sKvaOut)} kVA (out)
+                          • Reactive: ${formatNum(qKvarIn)} kVAR (in) / ${formatNum(qKvarOut)} kVAR (out)
 
-                          [Horsepower (HP)]
-                          • Selected HP (P_out): ${formatNum(hpSelectedOut)} HP
-                          • Metric HP (735.5W) : ${formatNum(hpMetricOut)} HP
-                          • Imp. HP (745.7W)   : ${formatNum(hpImpOut)} HP
-
-                          [Apparent Power (kVA) & Reactive Power (kVAR)]
-                          • Apparent Power (S_out): ${formatNum(sKvaOut)} kVA | (S_in): ${formatNum(sKvaIn)} kVA
-                          • Reactive Power (Q_out): ${formatNum(qKvarOut)} kVAR | (Q_in): ${formatNum(qKvarIn)} kVAR
-
-                          [Current (Amps) & Equivalent Impedance]
-                          • Load / Output Current (I_out): ${formatNum(currentOutA)} A
-                          • Supply / Input Current (I_in): ${formatNum(currentInA)} A
-                          • Impedance (Z): ${formatNum(zOhms)} Ω | R: ${formatNum(rOhms)} Ω | X: ${formatNum(xOhms)} Ω
+                          [Currents, Impedance & Protection]
+                          • Full-Load Input Current (FLC): ${formatNum(currentInA)} A (Shaft equiv: ${formatNum(currentOutA)} A)
+                          • Impedance Z: ${formatNum(zOhms)} Ω | R: ${formatNum(rOhms)} Ω | X: ${formatNum(xOhms)} Ω
+                          • Est. Fuse Rating (~1.5×FLC): ${formatNum(recFuseA)} A (~${formatNum(recFuseSqMm)} mm² Cu fuse wire)
+                          • Min Cable (1.25×FLC): Cu ${formatNum(recCable.first)} mm² / Al ${formatNum(recCable.second)} mm²
                       """.trimIndent()
                   }
+              }
+
+              private fun setupTransformerSubTab() {
+                  val rbTx3Ph = findViewById<RadioButton>(R.id.rbTxThreePhase)
+                  val etKva = findViewById<EditText>(R.id.etTxKva)
+                  val etHv = findViewById<EditText>(R.id.etTxHv)
+                  val etLv = findViewById<EditText>(R.id.etTxLv)
+                  val etPf = findViewById<EditText>(R.id.etTxPf)
+                  val etZ = findViewById<EditText>(R.id.etTxZ)
+                  val btnCalc = findViewById<Button>(R.id.btnCalcTx)
+                  val tvOut = findViewById<TextView>(R.id.tvTxOutput)
+
+                  btnCalc.setOnClickListener {
+                      val is3Ph = rbTx3Ph.isChecked
+                      val mult = if (is3Ph) sqrt(3.0) else 1.0
+                      val kva = etKva.text.toString().toDoubleOrNull() ?: 250.0
+                      val rawHv = etHv.text.toString().toDoubleOrNull() ?: 22000.0
+                      val hvV = if (rawHv > 0 && rawHv < 150.0) rawHv * 1000.0 else rawHv
+                      val lvV = etLv.text.toString().toDoubleOrNull() ?: 415.0
+                      val pf = (etPf.text.toString().toDoubleOrNull() ?: 0.85).coerceIn(0.05, 1.0)
+                      val zPct = (etZ.text.toString().toDoubleOrNull() ?: 4.5).coerceIn(0.5, 25.0)
+
+                      val hvAmps = if (hvV > 0) (kva * 1000.0) / (mult * hvV) else 0.0
+                      val lvAmps = if (lvV > 0) (kva * 1000.0) / (mult * lvV) else 0.0
+                      val kw = kva * pf
+                      val hpMetric = (kw * 1000.0) / 735.49875
+                      val sinPhi = sqrt((1.0 - pf * pf).coerceAtLeast(0.0))
+                      val kvar = kva * sinPhi
+
+                      val lvFaultKa = if (lvAmps > 0) (lvAmps * (100.0 / zPct)) / 1000.0 else 0.0
+                      val hvFuseA = hvAmps * 1.5
+                      val lvFuseA = lvAmps * 1.25
+                      val lvFuseSqMm = fuseWireSqMmFromCurrent(lvFuseA)
+                      val lvCable = suggestCable(lvAmps * 1.25)
+
+                      tvOut.text = """
+                          Transformer: ${formatNum(kva)} kVA (${if (is3Ph) "3-Phase" else "1-Phase"})
+                          HV: ${formatNum(hvV)} V (${formatNum(hvV / 1000.0)} kV) | LV: ${formatNum(lvV)} V | %Z: ${formatNum(zPct)}%
+
+                          [Full-Load Currents & Power]
+                          • HV Full-Load Current: ${formatNum(hvAmps)} A
+                          • LV Full-Load Current: ${formatNum(lvAmps)} A
+                          • Active Power @ PF ${formatNum(pf)}: ${formatNum(kw)} kW (${formatNum(hpMetric)} Metric HP)
+                          • Reactive Power: ${formatNum(kvar)} kVAR
+
+                          [Fault, Fuse & LV Cable Sizing]
+                          • Est. LV Symmetrical Fault (I_sc): ${formatNum(lvFaultKa)} kA
+                          • HV Fuse / Dropout Link (~1.5×I_hv): ${formatNum(hvFuseA)} A
+                          • LV Fuse Rating (~1.25×I_lv): ${formatNum(lvFuseA)} A (~${formatNum(lvFuseSqMm)} mm² Cu fuse)
+                          • Min LV Cable (1.25×I_lv): Cu ${formatNum(lvCable.first)} mm² / Al ${formatNum(lvCable.second)} mm²
+                      """.trimIndent()
+                  }
+              }
+
+              private fun setupCableSubTab() {
+                  val spSwg = findViewById<Spinner>(R.id.spSwg)
+                  val spSqMm = findViewById<Spinner>(R.id.spSqMm)
+                  val etAmps = findViewById<EditText>(R.id.etCableAmps)
+                  val spEquip = findViewById<Spinner>(R.id.spFuseEquip)
+                  val btnCalc = findViewById<Button>(R.id.btnCalcCable)
+                  val tvOut = findViewById<TextView>(R.id.tvCableOutput)
+
+                  spSwg.adapter = ArrayAdapter(
+                      this,
+                      android.R.layout.simple_spinner_dropdown_item,
+                      swgTable.map { "${it.first} (${it.second} mm)" }
+                  )
+                  spSqMm.adapter = ArrayAdapter(
+                      this,
+                      android.R.layout.simple_spinner_dropdown_item,
+                      cableSizes.map { "${formatNum(it.first)} sq.mm" }
+                  )
+                  val equipModes = listOf(
+                      "General / Feeder (Fuse ~1.25×I)",
+                      "Motor DOL / Starter (Fuse ~1.5×I)",
+                      "Transformer LV Side (Fuse ~1.25×I)",
+                      "Transformer HV Side (Fuse ~1.5×I)"
+                  )
+                  spEquip.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, equipModes)
+
+                  btnCalc.setOnClickListener {
+                      val swgItem = swgTable[spSwg.selectedItemPosition]
+                      val swgAreaMm2 = PI * (swgItem.second / 2.0).pow(2.0)
+
+                      val cabItem = cableSizes[spSqMm.selectedItemPosition]
+                      val loadAmps = etAmps.text.toString().toDoubleOrNull() ?: 0.0
+
+                      val fuseMult = when (spEquip.selectedItemPosition) {
+                          1, 3 -> 1.5
+                          else -> 1.25
+                      }
+                      val targetFuseA = loadAmps * fuseMult
+                      val fuseWireMm2 = fuseWireSqMmFromCurrent(targetFuseA)
+                      val fuseWireDiaMm = sqrt((fuseWireMm2 * 4.0) / PI)
+
+                      val recCable = suggestCable(loadAmps * 1.25)
+
+                      tvOut.text = """
+                          [Selected Size Reference]
+                          • ${swgItem.first} (Ø ${formatNum(swgItem.second)} mm): Area ≈ ${formatNum(swgAreaMm2)} mm² | Cu Fusing ≈ ${formatNum(swgItem.third)} A
+                          • ${formatNum(cabItem.first)} sq.mm Cable: Cu Rating ≈ ${formatNum(cabItem.second)} A | Al Rating ≈ ${formatNum(cabItem.third)} A
+
+                          [Load Current (${formatNum(loadAmps)} A) & Fuse Sizing]
+                          • Mode: ${spEquip.selectedItem}
+                          • Recommended Fuse Rating: ${formatNum(targetFuseA)} A
+                          • Fuse Wire Area: ${formatNum(fuseWireMm2)} sq.mm (Ø ≈ ${formatNum(fuseWireDiaMm)} mm Cu wire)
+                          • Cable Needed for ${formatNum(loadAmps)} A (with 1.25× margin):
+                            ↳ Copper: ${formatNum(recCable.first)} sq.mm | Aluminium: ${formatNum(recCable.second)} sq.mm
+                      """.trimIndent()
+                  }
+              }
+
+              // Approximate fusing wire cross-section (sq.mm) for copper wire
+              private fun fuseWireSqMmFromCurrent(currentA: Double): Double {
+                  if (currentA <= 0.0) return 0.0
+                  val kConstant = 80.0
+                  val diamMm = (currentA / kConstant).pow(2.0 / 3.0)
+                  return PI * (diamMm / 2.0).pow(2.0)
+              }
+
+              // Returns Pair(recommendedCuSqMm, recommendedAlSqMm)
+              private fun suggestCable(requiredAmps: Double): Pair<Double, Double> {
+                  val cu = cableSizes.firstOrNull { it.second >= requiredAmps }?.first ?: cableSizes.last().first
+                  val al = cableSizes.firstOrNull { it.third >= requiredAmps }?.first ?: cableSizes.last().first
+                  return Pair(cu, al)
               }
 
               private fun setupDamTab() {
