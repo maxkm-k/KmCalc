@@ -25,6 +25,12 @@ jobs:
           mkdir -p KmCalc/app/src/main/res/values
           mkdir -p KmCalc/app/src/main/res/drawable
 
+          cat << 'EOF' > KmCalc/gradle.properties
+          android.useAndroidX=true
+          android.nonTransitiveRClass=true
+          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+          EOF
+
           cat << 'EOF' > KmCalc/settings.gradle
           rootProject.name = "KmCalc"
           include ':app'
@@ -95,12 +101,14 @@ jobs:
 
           cat << 'EOF' > KmCalc/app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
-          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools">
               <application
                   android:allowBackup="true"
                   android:label="KmCalc"
                   android:supportsRtl="true"
-                  android:theme="@style/Theme.KmCalc">
+                  android:theme="@style/Theme.KmCalc"
+                  tools:targetApi="31">
                   <activity
                       android:name=".MainActivity"
                       android:exported="true"
@@ -314,7 +322,7 @@ jobs:
                           <TextView
                               android:layout_width="wrap_content"
                               android:layout_height="wrap_content"
-                              android:text="kW <-> HP Converter &amp; System Quantities"
+                              android:text="kW &lt;-&gt; HP Converter &amp; System Quantities"
                               android:textColor="#2DD4BF"
                               android:textSize="16sp"
                               android:textStyle="bold" />
@@ -591,11 +599,8 @@ jobs:
           import com.google.android.material.tabs.TabLayout
           import java.util.Locale
           import kotlin.math.acos
-          import kotlin.math.cos
           import kotlin.math.pow
-          import kotlin.math.sin
           import kotlin.math.sqrt
-          import kotlin.math.tan
 
           class MainActivity : AppCompatActivity() {
 
@@ -744,7 +749,6 @@ jobs:
                   }
               }
 
-              // Recursive descent arithmetic parser supporting +, -, *, /, %, parentheses
               private fun evalMath(s: String): Double {
                   var pos = -1
                   var ch = 0
@@ -877,25 +881,24 @@ jobs:
                       val knownA = etA.text.toString().toDoubleOrNull() ?: 0.0
                       val knownI = etI.text.toString().toDoubleOrNull() ?: 0.0
 
-                      // Compute electrical output kW (P_out) and input kW (P_in)
                       val pOutKw: Double
                       val pInKw: Double
 
                       when (spMode.selectedItemPosition) {
-                          0 -> { // From kW
+                          0 -> {
                               pOutKw = knownA
                               pInKw = pOutKw / eff
                           }
-                          1 -> { // From HP (mechanical output HP -> kW)
+                          1 -> {
                               pOutKw = (knownA * wattsPerHp) / 1000.0
                               pInKw = pOutKw / eff
                           }
-                          2 -> { // From kVA & PF (apparent power S -> active power kW)
+                          2 -> {
                               val sKva = knownA
                               pOutKw = sKva * pf
                               pInKw = pOutKw / eff
                           }
-                          else -> { // From V & I
+                          else -> {
                               pOutKw = (phaseMult * v * knownI * pf) / 1000.0
                               pInKw = pOutKw / eff
                           }
@@ -968,7 +971,6 @@ jobs:
                       val deltaH = etRise.text.toString().toDoubleOrNull() ?: 0.0
                       val baseWidth = etForce.text.toString().toDoubleOrNull() ?: 0.0
 
-                      // Standard gravity g = 9.81 m/s², water density ρ = 1000 kg/m³
                       val g = 9.81
                       val rho = 1000.0
                       val hydraulicKw = (rho * g * q * h) / 1000.0
@@ -977,7 +979,7 @@ jobs:
                       val genHpMetric = (genKw * 1000.0) / 735.49875
 
                       val dailyVolM3 = q * 86400.0
-                      val dailyVolMcft = dailyVolM3 / 28316.846592 // Mcft = 10^6 ft³
+                      val dailyVolMcft = dailyVolM3 / 28316.846592
                       val dailyEnergyMwh = (genKw * 24.0) / 1000.0
 
                       val areaM2 = areaKm2 * 1e6
@@ -985,12 +987,10 @@ jobs:
                       val storageChangeMcft = storageChangeM3 / 28316.846592
                       val storageChangeTmc = storageChangeM3 / 2.8316846592e7
 
-                      // Hydrostatic thrust per meter run of dam wall: F = 0.5 * ρ * g * H²
                       val thrustKnPerM = (0.5 * rho * g * h * h) / 1000.0
                       val hCenterFromBase = h / 3.0
                       val overturningMomentKnMPerM = thrustKnPerM * hCenterFromBase
 
-                      // Sliding & overturning safety check estimate (concrete ρ_c ≈ 2400 kg/m³)
                       val wallAreaPerM = 0.5 * baseWidth * h
                       val selfWeightKnPerM = (wallAreaPerM * 2400.0 * g) / 1000.0
                       val frictionCoeff = 0.7
