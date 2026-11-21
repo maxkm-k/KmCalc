@@ -752,10 +752,12 @@ jobs:
               private fun evalMath(s: String): Double {
                   var pos = -1
                   var ch = 0
+
                   fun nextChar() {
                       pos++
                       ch = if (pos < s.length) s[pos].code else -1
                   }
+
                   fun eat(charToEat: Int): Boolean {
                       while (ch == ' '.code) nextChar()
                       if (ch == charToEat) {
@@ -764,16 +766,28 @@ jobs:
                       }
                       return false
                   }
-                  fun parseExpression(): Double {
-                      var x = parseTerm()
-                      while (true) {
-                          x = when {
-                              eat('+'.code) -> x + parseTerm()
-                              eat('-'.code) -> x - parseTerm()
-                              else -> return x
-                          }
+
+                  lateinit var parseExpressionFn: () -> Double
+                  lateinit var parseTermFn: () -> Double
+
+                  fun parseFactor(): Double {
+                      if (eat('+'.code)) return parseFactor()
+                      if (eat('-'.code)) return -parseFactor()
+                      var x: Double
+                      val startPos = pos
+                      if (eat('('.code)) {
+                          x = parseExpressionFn()
+                          eat(')'.code)
+                      } else if ((ch in '0'.code..'9'.code) || ch == '.'.code) {
+                          while ((ch in '0'.code..'9'.code) || ch == '.'.code) nextChar()
+                          x = s.substring(startPos, pos).toDouble()
+                      } else {
+                          throw RuntimeException("Unexpected char")
                       }
+                      if (eat('^'.code)) x = x.pow(parseFactor())
+                      return x
                   }
+
                   fun parseTerm(): Double {
                       var x = parseFactor()
                       while (true) {
@@ -785,23 +799,21 @@ jobs:
                           }
                       }
                   }
-                  fun parseFactor(): Double {
-                      if (eat('+'.code)) return parseFactor()
-                      if (eat('-'.code)) return -parseFactor()
-                      var x: Double
-                      val startPos = pos
-                      if (eat('('.code)) {
-                          x = parseExpression()
-                          eat(')'.code)
-                      } else if ((ch in '0'.code..'9'.code) || ch == '.'.code) {
-                          while ((ch in '0'.code..'9'.code) || ch == '.'.code) nextChar()
-                          x = s.substring(startPos, pos).toDouble()
-                      } else {
-                          throw RuntimeException("Unexpected char")
+
+                  fun parseExpression(): Double {
+                      var x = parseTermFn()
+                      while (true) {
+                          x = when {
+                              eat('+'.code) -> x + parseTermFn()
+                              eat('-'.code) -> x - parseTermFn()
+                              else -> return x
+                          }
                       }
-                      if (eat('^'.code)) x = x.pow(parseFactor())
-                      return x
                   }
+
+                  parseTermFn = { parseTerm() }
+                  parseExpressionFn = { parseExpression() }
+
                   nextChar()
                   val result = parseExpression()
                   if (pos < s.length) throw RuntimeException("Trailing chars")
